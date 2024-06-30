@@ -2,24 +2,25 @@ package com.yaro.mccoords.ui.compose
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yaro.mccoords.ChunkMath2d
@@ -31,41 +32,75 @@ fun ChunkCalculator() {
     var block by remember { mutableStateOf(Point2d()) }
 
     val chunk = ChunkMath2d.blockToChunk(block)
-    val chunkMin = ChunkMath2d.chunkToMinBlock(chunk)
-    val chunkMax = ChunkMath2d.chunkToMaxBlock(chunk)
 
     Column(modifier = Modifier.padding(vertical = 20.dp, horizontal = 5.dp)) {
-        EditablePoint(block) { block = it }
-        Spacer(modifier = Modifier.height(12.dp))
-        Text("Chunk:     ${chunk.x}, ${chunk.z}")
-        Text("Chunk Min: ${chunkMin.x}, ${chunkMin.z}")
-        Text("Chunk Max: ${chunkMax.x}, ${chunkMax.z}")
+        SectionWithTitle("Block Coordinates") {
+            EditablePoint(block) { block = it }
+        }
+
+        SectionWithTitle("Chunk Min/Max") {
+            ReadOnlyPoint(ChunkMath2d.getChunkMinBlock(chunk))
+            ReadOnlyPoint(ChunkMath2d.getChunkMaxBlock(chunk))
+        }
+
+        SectionWithTitle("Block Relative Coordinates") {
+            ReadOnlyPoint(ChunkMath2d.blockToRelative(block))
+        }
+
+        SectionWithTitle("Chunk Coordinates") {
+            ReadOnlyPoint(chunk)
+        }
     }
 }
 
 @Composable
-private fun EditablePoint(pt: Point2d, onValueChange: (Point2d) -> Unit) {
-    PointComponent("X", pt.x) { onValueChange(pt.copy(x = it)) }
-    PointComponent("Z", pt.z) { onValueChange(pt.copy(z = it)) }
+fun SectionWithTitle(title: String, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.padding(8.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .fillMaxWidth(1f)
+                .padding(8.dp),
+        )
+        content()
+    }
+}
+
+
+@Composable
+private fun EditablePoint(
+    point: Point2d,
+    onValueChange: (Point2d) -> Unit
+) {
+    Row {
+        val modifier = Modifier.weight(1f)
+        PointComponent("X", point.x, modifier = modifier) {
+            onValueChange(point.copy(x = it))
+        }
+        PointComponent("Z", point.z, modifier = modifier) {
+            onValueChange(point.copy(z = it))
+        }
+    }
 }
 
 @Composable
-private fun PointComponent(label: String, value: Int, onValueChange: (Int) -> Unit) {
+private fun PointComponent(
+    label: String,
+    value: Int,
+    modifier: Modifier = Modifier,
+    onValueChange: (Int) -> Unit
+) {
     val pattern = Regex("^[-+]?\\d*$")
     var textValue by remember {
         mutableStateOf(TextFieldValue(value.toString()))
     }
 
-    Row(
-        modifier = Modifier
+    Surface(
+        modifier = modifier
             .fillMaxWidth(1f)
             .padding(2.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            Modifier.padding(horizontal = 16.dp)
-        )
         OutlinedTextField(
             value = textValue,
             onValueChange = {
@@ -83,15 +118,57 @@ private fun PointComponent(label: String, value: Int, onValueChange: (Int) -> Un
                         selection = TextRange(0, text.length)
                     )
                 }
-            }
+            },
+            textStyle = TextStyle(textAlign = TextAlign.Center),
+            label = {
+                Text(
+                    label,
+                    style = TextStyle(color = MaterialTheme.colorScheme.primary)
+                )
+            },
         )
+    }
+}
+
+@Composable
+fun ReadOnlyPoint(
+    point: Point2d,
+) {
+    Row {
+        val modifier = Modifier.weight(1f)
+        ReadonlyPointComponent(point.x, modifier = modifier)
+        ReadonlyPointComponent(point.z, modifier = modifier)
+    }
+}
+
+@Composable
+fun ReadonlyPointComponent(value: Int, modifier: Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(1f)
+            .padding(2.dp),
+    ) {
+        Text(
+            text = value.toString(),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+//@Preview(name = "Night", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ChunkCalculatorPreview() {
+    McCoordsTheme {
+        ChunkCalculator()
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ChunkCalculatorPreview() {
+fun ReadonlyPointPreview() {
     McCoordsTheme {
-        ChunkCalculator()
+        ReadOnlyPoint(Point2d(x = 0, z = 17))
     }
 }

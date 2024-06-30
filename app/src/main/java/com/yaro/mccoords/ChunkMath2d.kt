@@ -1,8 +1,13 @@
 package com.yaro.mccoords
 
 class ChunkMath2d {
-    companion object
-    {
+    companion object {
+        /**
+         * Converts a block coordinate to a chunk coordinate.
+         *
+         * @param block The block coordinate to convert.
+         * @return The corresponding chunk coordinate.
+         */
         fun blockToChunk(block: Point2d): Point2d {
             return Point2d(
                 block.x shr 4,
@@ -10,17 +15,42 @@ class ChunkMath2d {
             )
         }
 
-        fun chunkToMinBlock(chunk: Point2d): Point2d {
+        /**
+         * Calculates the minimum block coordinate of a given chunk.
+         *
+         * @param chunk The chunk coordinate.
+         * @return The minimum block coordinate of the chunk.
+         */
+        fun getChunkMinBlock(chunk: Point2d): Point2d {
             return Point2d(
                 chunk.x shl 4,
                 chunk.z shl 4
             )
         }
 
-        fun chunkToMaxBlock(chunk: Point2d): Point2d {
+        /**
+         * Calculates the maximum block coordinate of a given chunk.
+         *
+         * @param chunk The chunk coordinate.
+         * @return The maximum block coordinate of the chunk.
+         */
+        fun getChunkMaxBlock(chunk: Point2d): Point2d {
             return Point2d(
                 (chunk.x + 1 shl 4) - 1,
                 (chunk.z + 1 shl 4) - 1
+            )
+        }
+
+        /**
+         * Calculates absolute coordinates of a block relative to its chunk
+         *
+         * @param block The absolute coordinates of a block
+         * @return The coordinates of the block relative to its chunk
+         */
+        fun blockToRelative(block: Point2d): Point2d {
+            return Point2d(
+                block.x % 16,
+                block.z % 16
             )
         }
     }
