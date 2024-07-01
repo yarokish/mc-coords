@@ -40,18 +40,5 @@ class ChunkMath2d {
                 (chunk.z + 1 shl 4) - 1
             )
         }
-
-        /**
-         * Calculates absolute coordinates of a block relative to its chunk
-         *
-         * @param block The absolute coordinates of a block
-         * @return The coordinates of the block relative to its chunk
-         */
-        fun blockToRelative(block: Point2d): Point2d {
-            return Point2d(
-                block.x % 16,
-                block.z % 16
-            )
-        }
     }
 }

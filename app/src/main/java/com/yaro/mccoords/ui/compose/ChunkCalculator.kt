@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,55 +29,107 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yaro.mccoords.ChunkMath2d
 import com.yaro.mccoords.Point2d
+import com.yaro.mccoords.minus
 import com.yaro.mccoords.ui.theme.McCoordsTheme
+
+val SURFACE_TONAL_ELEVATION = 3.dp
 
 @Composable
 fun ChunkCalculator() {
     var block by remember { mutableStateOf(Point2d()) }
 
     val chunk = ChunkMath2d.blockToChunk(block)
+    val chunkMinBlock = ChunkMath2d.getChunkMinBlock(chunk)
+    val chunkMaxBlock = ChunkMath2d.getChunkMaxBlock(chunk)
 
-    Column(modifier = Modifier.padding(vertical = 20.dp, horizontal = 5.dp)) {
-        SectionWithTitle("Block Coordinates") {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(modifier = Modifier.padding(vertical = 20.dp, horizontal = 8.dp)) {
+            SectionTitle(title = "Block Coordinates")
             EditablePoint(block) { block = it }
-        }
 
-        SectionWithTitle("Chunk Min/Max") {
-            ReadOnlyPoint(ChunkMath2d.getChunkMinBlock(chunk))
-            ReadOnlyPoint(ChunkMath2d.getChunkMaxBlock(chunk))
-        }
+            SubSection {
+                SubsectionTitle(title = "Chunk Min/Max")
+                ReadOnlyPoint(chunkMinBlock)
+                ReadOnlyPoint(chunkMaxBlock)
 
-        SectionWithTitle("Block Relative Coordinates") {
-            ReadOnlyPoint(ChunkMath2d.blockToRelative(block))
-        }
+                SubsectionTitleWithDivider(title = "Block Relative Coordinates")
+                ReadOnlyPoint(block - chunkMinBlock)
+            }
 
-        SectionWithTitle("Chunk Coordinates") {
-            ReadOnlyPoint(chunk)
+            SubSection {
+                SubsectionTitle(title = "Chunk Coordinates")
+                ReadOnlyPoint(chunk)
+            }
         }
     }
 }
 
 @Composable
-fun SectionWithTitle(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.padding(8.dp)) {
+fun SectionTitle(title: String) {
+    Surface(
+        tonalElevation = SURFACE_TONAL_ELEVATION,
+        shape = MaterialTheme.shapes.small,
+    ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .fillMaxWidth(1f)
-                .padding(8.dp),
+                .padding(vertical = 8.dp, horizontal = 8.dp),
         )
-        content()
     }
 }
 
+@Composable
+fun SubsectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth(1f)
+            .padding(vertical = 4.dp),
+    )
+}
+
+@Composable
+fun SubsectionTitleWithDivider(title: String) {
+    Divider(
+        modifier = Modifier.padding(vertical = 4.dp),
+        color = MaterialTheme.colorScheme.onSurfaceVariant, // Use a,
+    )
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth(1f)
+            .padding(vertical = 4.dp),
+    )
+}
+
+@Composable
+fun SubSection(content: @Composable () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(SURFACE_TONAL_ELEVATION),
+        ),
+        modifier = Modifier.padding(vertical = 8.dp),
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) { // Add padding within the section
+            content()
+        }
+    }
+}
 
 @Composable
 private fun EditablePoint(
     point: Point2d,
     onValueChange: (Point2d) -> Unit
 ) {
-    Row {
+    Row (
+        modifier = Modifier.padding(vertical = 8.dp)
+    ){
         val modifier = Modifier.weight(1f)
         PointComponent("X", point.x, modifier = modifier) {
             onValueChange(point.copy(x = it))
@@ -120,12 +176,7 @@ private fun PointComponent(
                 }
             },
             textStyle = TextStyle(textAlign = TextAlign.Center),
-            label = {
-                Text(
-                    label,
-                    style = TextStyle(color = MaterialTheme.colorScheme.primary)
-                )
-            },
+            label = { Text(label) },
         )
     }
 }
